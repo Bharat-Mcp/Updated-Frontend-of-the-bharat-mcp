@@ -50,9 +50,9 @@ export const Footer = () => {
               <Mail size={14} className="text-[#138808]" />
               team@bharatmcp.com
             </a>
-            <a href="tel:+911800123456" className="flex items-center gap-2 hover:text-white transition-colors">
+            <a href="tel:+98792006592" className="flex items-center gap-2 hover:text-white transition-colors">
               <Phone size={14} className="text-[#138808]" />
-              +91 1800-123-4567
+            +91 87920 06592
             </a>
             <div className="flex items-center gap-2">
               <MapPin size={14} className="text-[#138808]" />

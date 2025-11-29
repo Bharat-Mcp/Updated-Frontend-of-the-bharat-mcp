@@ -343,8 +343,8 @@ export const SolutionCard = () => {
         >
           <AnimatedStat value="10K+" label="Invoices Processed" delay={0.1} />
           <AnimatedStat value="100%" label="GST Compliant" delay={0.2} />
-          <AnimatedStat value="₹50L+" label="ITC Recovered" delay={0.3} />
-          <AnimatedStat value="500+" label="Happy Businesses" delay={0.4} />
+          <AnimatedStat value="₹2L+" label="ITC Recovered" delay={0.3} />
+          <AnimatedStat value="5+" label="Happy Businesses" delay={0.4} />
         </motion.div>
 
         {/* Bottom features strip */}

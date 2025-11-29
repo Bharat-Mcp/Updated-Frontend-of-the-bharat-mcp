@@ -4,7 +4,7 @@ import { MessageCircle } from 'lucide-react';
 
 export const WhatsAppButton = () => {
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/919876543210?text=Hi%20Bharat%20MCP%2C%20I%20would%20like%20to%20know%20more%20about%20invoice%20automation', '_blank');
+    window.open('https://wa.me/+918792006592?text=Hi%20Bharat%20MCP%2C%20I%20would%20like%20to%20know%20more%20about%20invoice%20automation', '_blank');
   };
 
   return (
