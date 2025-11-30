@@ -41,6 +41,7 @@
     "framer-motion": "^12.23.24",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.507.0",
+    "next-sitemap": "^4.2.3",
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -57,10 +58,12 @@
     "zod": "^3.24.4"
   },
   "scripts": {
-    "dev":"craco start",
+    "dev": "craco start",
     "start": "craco start",
     "build": "craco build",
+    "postbuild": "next-sitemap",
     "test": "craco test"
+
   },
   "browserslist": {
     "production": [
