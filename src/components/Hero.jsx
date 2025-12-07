@@ -1,591 +1,339 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from './ui/button';
-import { 
-  Play, ArrowRight, MessageCircle, 
-  CheckCircle2, Sparkles, Bot,
-  Send, Check, FileText, 
-  Receipt, GitCompare, Building2,
-  Mail, Bell, X, CheckCheck, 
-  ChevronUp, ChevronDown, Mouse
-} from 'lucide-react';
-
-// Scroll Down Indicator (at bottom of hero)
-const ScrollDownIndicator = ({ show }) => (
-  <AnimatePresence>
-    {show && (
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40"
-      >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          className="flex flex-col items-center gap-2 cursor-pointer"
-          onClick={() => window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' })}
-        >
-          <span className="text-xs font-medium text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full shadow-sm border border-gray-100">
-            Scroll to explore
-          </span>
-          <div className="w-8 h-12 rounded-full border-2 border-gray-300 flex items-start justify-center p-2">
-            <motion.div
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              className="w-1.5 h-3 bg-gray-400 rounded-full"
-            />
-          </div>
-        </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
-
-// Scroll to Top Button
-const ScrollToTopButton = ({ show, onClick }) => (
-  <AnimatePresence>
-    {show && (
-      <motion.button
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        transition={{ duration: 0.3, type: "spring" }}
-        onClick={onClick}
-        className="fixed bottom-8 right-4 md:right-8 z-50 w-11 h-11 md:w-12 md:h-12 bg-[#138808] hover:bg-[#0f6906] text-white rounded-full shadow-lg shadow-green-600/30 flex items-center justify-center transition-colors"
-      >
-        <ChevronUp className="w-5 h-5 md:w-6 md:h-6" />
-      </motion.button>
-    )}
-  </AnimatePresence>
-);
-
-// New Message Indicator in Chat
-const NewMessageIndicator = ({ count, onClick }) => (
-  <motion.button
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: 10 }}
-    onClick={onClick}
-    className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-[#138808] text-white px-3 py-1.5 rounded-full shadow-lg text-xs font-medium hover:bg-[#0f6906] transition-colors"
-  >
-    <ChevronDown className="w-3.5 h-3.5" />
-    {count} new
-  </motion.button>
-);
-
-// Floating Notification Component
-const FloatingNotification = ({ icon: Icon, iconBg, title, message, time, onClose, index, isMobile }) => (
-  <motion.div
-    initial={{ opacity: 0, x: isMobile ? 0 : 100, y: isMobile ? -50 : 0, scale: 0.9 }}
-    animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-    exit={{ opacity: 0, x: isMobile ? 0 : 100, y: isMobile ? -50 : 0, scale: 0.9 }}
-    transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
-    className={`fixed bg-white rounded-xl shadow-2xl border border-gray-100 p-3 z-50 ${
-      isMobile 
-        ? 'left-4 right-4 top-20' 
-        : 'right-4 w-72'
-    }`}
-    style={!isMobile ? { top: `${100 + index * 90}px` } : {}}
-  >
-    <div className="flex items-start gap-3">
-      <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
-        <Icon className="w-4 h-4 text-white" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-gray-900 truncate">{title}</p>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{message}</p>
-        <p className="text-[10px] text-gray-400 mt-1">{time}</p>
-      </div>
-    </div>
-    <motion.div
-      initial={{ width: "100%" }}
-      animate={{ width: "0%" }}
-      transition={{ duration: 4, ease: "linear" }}
-      className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-b-xl"
-    />
-  </motion.div>
-);
-
-// Typing animation component
-const TypingDots = () => (
-  <div className="flex items-center gap-1 px-3 py-2">
-    {[0, 0.2, 0.4].map((delay, i) => (
-      <motion.span
-        key={i}
-        className="w-1.5 h-1.5 bg-gray-400 rounded-full"
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 1, repeat: Infinity, delay }}
-      />
-    ))}
-  </div>
-);
-
-// Chat message component
-const ChatMessage = ({ isBot, message, children }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-    className={`flex ${isBot ? 'justify-start' : 'justify-end'}`}
-  >
-    <div className="max-w-[88%] md:max-w-[85%]">
-      <div className={`px-3 py-2 md:px-4 md:py-2.5 rounded-2xl ${
-        isBot 
-          ? 'bg-white border border-gray-100 text-gray-800 rounded-tl-md shadow-sm' 
-          : 'bg-[#138808] text-white rounded-tr-md'
-      }`}>
-        <p className="text-xs md:text-sm leading-relaxed">{message}</p>
-        {children}
-      </div>
-    </div>
-  </motion.div>
-);
-
-// 3-Way Match Result Card
-const ThreeWayMatchCard = () => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="mt-2 bg-gradient-to-br from-gray-50 to-green-50/50 rounded-lg p-2.5 border border-gray-100"
-  >
-    <div className="text-[10px] md:text-xs font-medium text-gray-500 mb-2">3-Way Match</div>
-    <div className="space-y-1.5">
-      {[
-        { icon: FileText, label: 'Invoice', color: 'bg-blue-100', iconColor: 'text-blue-600' },
-        { icon: Receipt, label: 'PO #4521', color: 'bg-purple-100', iconColor: 'text-purple-600' },
-        { icon: GitCompare, label: 'GST 2B', color: 'bg-orange-100', iconColor: 'text-orange-600' },
-      ].map(({ icon: Icon, label, color, iconColor }) => (
-        <div key={label} className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <div className={`w-5 h-5 md:w-6 md:h-6 rounded-md ${color} flex items-center justify-center`}>
-              <Icon className={`w-3 h-3 md:w-3.5 md:h-3.5 ${iconColor}`} />
-            </div>
-            <span className="text-[10px] md:text-xs text-gray-700">{label}</span>
-          </div>
-          <Check className="w-3.5 h-3.5 md:w-4 md:h-4 text-green-600" />
-        </div>
-      ))}
-    </div>
-    <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
-      <span className="text-[10px] md:text-xs text-gray-500">Status</span>
-      <span className="text-[10px] md:text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">
-        ✓ Matched
-      </span>
-    </div>
-  </motion.div>
-);
-
-// WhatsApp Reconciliation Card
-const WhatsAppReconCard = () => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="mt-2 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-2.5 border border-green-100"
-  >
-    <div className="flex items-center gap-1.5 mb-2">
-      <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center">
-        <MessageCircle className="w-3 h-3 text-white" />
-      </div>
-      <span className="text-[10px] md:text-xs font-semibold text-green-800">WhatsApp Recon</span>
-    </div>
-    <div className="h-1 bg-green-200 rounded-full overflow-hidden">
-      <motion.div
-        initial={{ width: "0%" }}
-        animate={{ width: "100%" }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
-        className="h-full bg-green-500 rounded-full"
-      />
-    </div>
-    <p className="text-[10px] text-gray-600 mt-1.5">Verifying with vendor...</p>
-  </motion.div>
-);
-
-// WhatsApp Sent Card
-const WhatsAppCard = () => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="mt-2 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-2.5 border border-green-100"
-  >
-    <div className="flex items-center justify-between mb-1.5">
-      <div className="flex items-center gap-1.5">
-        <MessageCircle className="w-3.5 h-3.5 text-green-600" />
-        <span className="text-[10px] md:text-xs font-medium text-green-800">WhatsApp Sent</span>
-      </div>
-      <CheckCheck className="w-3.5 h-3.5 text-blue-500" />
-    </div>
-    <div className="bg-white rounded-md p-2 border border-green-100">
-      <div className="flex items-center gap-1.5 mb-1">
-        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-[8px] font-bold text-white">
-          RS
-        </div>
-        <span className="text-[10px] md:text-xs font-medium text-gray-900">Raj Suppliers</span>
-      </div>
-      <p className="text-[9px] md:text-[10px] text-gray-600 italic leading-relaxed">
-        "Invoice INV-892 not in GST 2B. Please file GSTR-1."
-      </p>
-    </div>
-  </motion.div>
-);
-
-// Bill Created Card
-const BillCreatedCard = () => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="mt-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-2.5 border border-blue-100"
-  >
-    <div className="flex items-center gap-1.5 mb-1.5">
-      <Building2 className="w-3.5 h-3.5 text-blue-600" />
-      <span className="text-[10px] md:text-xs font-medium text-blue-800">Zoho Books</span>
-    </div>
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-xs md:text-sm font-semibold text-gray-900">Bill Created</p>
-        <p className="text-[10px] text-gray-500">BILL-2024-0156</p>
-      </div>
-      <motion.div 
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 300, delay: 0.2 }}
-        className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center"
-      >
-        <Check className="w-4 h-4 text-green-600" />
-      </motion.div>
-    </div>
-  </motion.div>
-);
+import React, { useState, useEffect, useRef } from "react";
 
 export const Hero = () => {
-  const [chatStep, setChatStep] = useState(0);
-  const [isTyping, setIsTyping] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [showScrollDown, setShowScrollDown] = useState(true);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const [isAtBottom, setIsAtBottom] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const chatContainerRef = useRef(null);
+  const [active, setActive] = useState(0);
+  const [badgeIndex, setBadgeIndex] = useState(0);
+  const [badgeText, setBadgeText] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const containerRef = useRef(null);
 
-  const notificationData = [
-    { icon: Mail, iconBg: "bg-red-500", title: "New Invoice", message: "From Sharma Electronics - ₹45,200", time: "Just now", triggerStep: 0 },
-    { icon: GitCompare, iconBg: "bg-orange-500", title: "GST 2B Synced", message: "152 records from GSTN", time: "2s ago", triggerStep: 2 },
-    { icon: MessageCircle, iconBg: "bg-green-500", title: "WhatsApp Sent", message: "Raj Suppliers notified", time: "Just now", triggerStep: 6 },
-    { icon: CheckCircle2, iconBg: "bg-blue-500", title: "Bill Created", message: "BILL-2024-0156 in Zoho", time: "Just now", triggerStep: 7 },
+  const badgeMessages = [
+    "100% local — your data never leaves your device",
+    "India's first AI to make your OS smart",
+    "Works with any browser, any app",
+    "No cloud, no subscriptions, just you",
   ];
 
-  const chatFlow = [
-    { isBot: true, message: "Hi! Found 3 invoices in Gmail. Process them?" },
-    { isBot: false, message: "Yes, match with PO & GST 2B" },
-    { isBot: true, message: "Processing Raj Suppliers...", showMatch: true },
-    { isBot: true, message: "Running WhatsApp recon...", showWhatsAppRecon: true },
-    { isBot: true, message: "1 GST 2B mismatch found. Notify?" },
-    { isBot: false, message: "Yes, send WhatsApp" },
-    { isBot: true, message: "Vendor notified!", showWhatsApp: true },
-    { isBot: true, message: "Done! Bill created in Zoho.", showBill: true },
+  const scenarios = [
+    { app: "Gmail", window: <GmailWindow />, aiText: "Found an invoice — ₹45,000 from ABC Corp. Want me to save it?" },
+    { app: "VS Code", window: <VSCodeWindow />, aiText: "I see an error on line 23. Need help fixing it?" },
+    { app: "n8n", window: <N8nWindow />, aiText: "Setting up Google Sheets? I'll guide you step by step." },
+    { app: "Terminal", window: <TerminalWindow />, aiText: "Found your MongoDB URI from last month." },
   ];
 
-  // Check if mobile
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    const timer = setInterval(() => setActive((p) => (p + 1) % scenarios.length), 5000);
+    return () => clearInterval(timer);
   }, []);
 
-  // Handle page scroll
+  // Badge typing animation
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setShowScrollDown(scrollY < 100);
-      setShowScrollTop(scrollY > 300);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const currentMessage = badgeMessages[badgeIndex];
+    let index = 0;
+    setBadgeText("");
+    setIsTyping(true);
 
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  // Handle chat scroll
-  const handleChatScroll = () => {
-    if (chatContainerRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isBottom = scrollHeight - scrollTop - clientHeight < 50;
-      setIsAtBottom(isBottom);
-      if (isBottom) setUnreadMessages(0);
-    }
-  };
-
-  const scrollChatToBottom = () => {
-    chatContainerRef.current?.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
-    setUnreadMessages(0);
-  };
-
-  // Auto-scroll chat
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      if (isAtBottom) {
-        chatContainerRef.current.scrollTo({ top: chatContainerRef.current.scrollHeight, behavior: 'smooth' });
+    const typeInterval = setInterval(() => {
+      if (index < currentMessage.length) {
+        setBadgeText(currentMessage.slice(0, index + 1));
+        index++;
       } else {
-        setUnreadMessages(prev => prev + 1);
-      }
-    }
-  }, [chatStep, isAtBottom]);
-
-  // Handle notifications
-  useEffect(() => {
-    const matching = notificationData.filter(n => n.triggerStep === chatStep);
-    matching.forEach((notif, idx) => {
-      setTimeout(() => setNotifications(prev => [...prev, { ...notif, id: Date.now() + idx }]), idx * 300);
-    });
-  }, [chatStep]);
-
-  // Auto-remove notifications
-  useEffect(() => {
-    if (notifications.length > 0) {
-      const timer = setTimeout(() => setNotifications(prev => prev.slice(1)), 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [notifications]);
-
-  // Chat flow
-  useEffect(() => {
-    if (chatStep < chatFlow.length - 1) {
-      const delay = chatFlow[chatStep].isBot ? 2200 : 1500;
-      setIsTyping(true);
-      const timer = setTimeout(() => {
+        clearInterval(typeInterval);
         setIsTyping(false);
-        setChatStep(prev => prev + 1);
-      }, delay);
-      return () => clearTimeout(timer);
-    } else {
-      const timer = setTimeout(() => {
-        setChatStep(0);
-        setNotifications([]);
-        setUnreadMessages(0);
-        if (chatContainerRef.current) chatContainerRef.current.scrollTop = 0;
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [chatStep]);
+        setTimeout(() => {
+          setBadgeIndex((prev) => (prev + 1) % badgeMessages.length);
+        }, 2500);
+      }
+    }, 40);
 
-  const removeNotification = (id) => setNotifications(prev => prev.filter(n => n.id !== id));
+    return () => clearInterval(typeInterval);
+  }, [badgeIndex]);
+
+  const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setMousePos({
+      x: (e.clientX - rect.left - rect.width / 2) / 40,
+      y: (e.clientY - rect.top - rect.height / 2) / 40,
+    });
+  };
 
   return (
-    <section className="relative min-h-screen flex items-center pt-20 md:pt-24 pb-24 md:pb-16 px-4 overflow-hidden bg-gradient-to-b from-gray-50 to-white">
+    <section ref={containerRef} onMouseMove={handleMouseMove} className="relative min-h-screen overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-0 md:left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-green-100/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-0 md:right-1/4 w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-orange-100/20 rounded-full blur-3xl" />
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-0 right-0 w-[400px] md:w-[800px] h-[400px] md:h-[800px] bg-gradient-to-bl from-orange-500/20 to-transparent rounded-full blur-[100px] md:blur-[150px]" />
+        <div className="absolute bottom-0 left-0 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-gradient-to-tr from-amber-500/15 to-transparent rounded-full blur-[80px] md:blur-[120px]" />
       </div>
 
-      {/* Notifications */}
-      <AnimatePresence>
-        {(isMobile ? notifications.slice(0, 1) : notifications).map((notif, index) => (
-          <FloatingNotification
-            key={notif.id}
-            {...notif}
-            index={index}
-            isMobile={isMobile}
-            onClose={() => removeNotification(notif.id)}
-          />
-        ))}
-      </AnimatePresence>
-
-      {/* Scroll Indicators */}
-      <ScrollDownIndicator show={showScrollDown} />
-      <ScrollToTopButton show={showScrollTop} onClick={scrollToTop} />
-
-      <div className="relative z-10 max-w-6xl mx-auto w-full">
-        <div className="grid lg:grid-cols-2 gap-8 md:gap-12 lg:gap-16 items-center">
-          {/* Left Content */}
-          <div className="text-center lg:text-left order-2 lg:order-1">
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-xs md:text-sm font-medium mb-4 md:mb-6 border border-green-100"
-            >
-              <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" />
-              AP Copilot for India
-            </motion.div>
-
-            {/* Heading */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold text-gray-900 leading-tight mb-4 md:mb-6"
-            >
-              Invoice to Bill,
-              <br />
-              <span className="bg-gradient-to-r from-[#138808] to-emerald-500 bg-clip-text text-transparent">
-                Fully Automated
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 pt-24 sm:pt-28 md:pt-32 pb-12 md:pb-20">
+        {/* Hero Content */}
+        <div className="text-center mb-12 md:mb-20">
+          {/* Badge */}
+          <div className="mb-6 md:mb-8">
+            <span className="inline-flex items-center gap-2 px-3 sm:px-5 py-2 rounded-full bg-white/[0.03] border border-white/[0.06]">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
               </span>
-            </motion.h1>
-
-            {/* Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-base md:text-lg text-gray-600 mb-6 md:mb-8 max-w-md mx-auto lg:mx-0 leading-relaxed"
-            >
-              AI Agent that captures invoices, matches with PO & GST 2B, 
-              reconciles via WhatsApp, and syncs to Zoho Books.
-            </motion.p>
-
-            {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8 md:mb-10"
-            >
-              <Button className="bg-[#138808] hover:bg-[#0f6906] text-white px-5 py-4 md:px-6 md:py-5 text-sm md:text-base rounded-xl shadow-lg shadow-green-600/20">
-                Start Free Pilot
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button variant="outline" className="px-5 py-4 md:px-6 md:py-5 text-sm md:text-base rounded-xl border-2 border-gray-200">
-                <Play className="mr-2 w-4 h-4" />
-                Watch Demo
-              </Button>
-            </motion.div>
-
-            {/* Features */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="grid grid-cols-2 gap-2 md:gap-3 max-w-md mx-auto lg:mx-0"
-            >
-              {['Gmail Capture', 'PO Matching', 'GST 2A/2B', 'WhatsApp Recon', 'Zoho Sync', '3-Way Match'].map((feature, i) => (
-                <motion.div
-                  key={feature}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
-                  className="flex items-center gap-1.5 text-xs md:text-sm text-gray-600"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#138808] flex-shrink-0" />
-                  <span>{feature}</span>
-                </motion.div>
-              ))}
-            </motion.div>
+              <span className="text-xs sm:text-sm text-gray-400 min-w-[200px] sm:min-w-[280px]">
+                {badgeText}
+                <span className={`inline-block w-0.5 h-3 sm:h-4 bg-orange-500 ml-0.5 align-middle ${isTyping ? 'animate-pulse' : 'opacity-0'}`} />
+              </span>
+            </span>
           </div>
 
-          {/* Right - Chat */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="relative order-1 lg:order-2"
-          >
-            {/* Bell */}
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.5, type: "spring" }}
-              className="absolute -top-2 -right-2 md:-top-3 md:-right-3 z-10"
-            >
-              <div className="relative">
-                <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center">
-                  <Bell className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
-                </div>
-                <AnimatePresence>
-                  {notifications.length > 0 && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                      className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 rounded-full text-white text-[9px] md:text-[10px] font-bold flex items-center justify-center"
-                    >
-                      {notifications.length}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
+          {/* Main Headline */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-6 md:mb-8">
+            <span className="text-white">AI that's </span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">always</span>
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">with you</span>
+          </h1>
 
-            <div className="bg-white rounded-2xl shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-[#138808] to-emerald-600 px-4 py-2.5 md:px-5 md:py-3">
-                <div className="flex items-center gap-2.5 md:gap-3">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-white font-semibold text-xs md:text-sm">Bharat AI Agent</h3>
-                    <span className="text-green-100 text-[10px] md:text-xs flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-300 animate-pulse" />
-                      Processing...
-                    </span>
-                  </div>
-                </div>
-              </div>
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-400 max-w-2xl mx-auto mb-8 md:mb-12 leading-relaxed px-2">
+            On every screen, in every app. Helping with setups, fixing errors, saving important data.
+          </p>
 
-              {/* Messages */}
-              <div 
-                ref={chatContainerRef}
-                onScroll={handleChatScroll}
-                className="relative p-3 md:p-4 space-y-2.5 md:space-y-3 bg-gray-50/50 h-[300px] md:h-[380px] overflow-y-auto scroll-smooth"
-              >
-                <AnimatePresence mode="popLayout">
-                  {chatFlow.slice(0, chatStep + 1).map((msg, index) => (
-                    <ChatMessage key={index} isBot={msg.isBot} message={msg.message}>
-                      {msg.showMatch && <ThreeWayMatchCard />}
-                      {msg.showWhatsAppRecon && <WhatsAppReconCard />}
-                      {msg.showWhatsApp && <WhatsAppCard />}
-                      {msg.showBill && <BillCreatedCard />}
-                    </ChatMessage>
-                  ))}
-                </AnimatePresence>
-                
-                {isTyping && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                    <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-md shadow-sm">
-                      <TypingDots />
-                    </div>
-                  </motion.div>
-                )}
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-6 md:mb-8">
+            <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-white text-sm sm:text-base bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center gap-2">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download for Free
+            </button>
+            <button className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white/[0.03] border border-white/[0.08] rounded-xl sm:rounded-2xl font-medium text-white text-sm sm:text-base flex items-center justify-center gap-2">
+              Watch Demo
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Trust Points */}
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-500">
+            {["No signup required", "Works offline", "Windows & Mac"].map((item, i) => (
+              <span key={i} className="flex items-center gap-1.5 sm:gap-2">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-500/70" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Product Demo */}
+        <div className="relative max-w-6xl mx-auto">
+          <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 rounded-2xl sm:rounded-3xl blur-xl sm:blur-2xl" />
+
+          {/* Desktop Frame */}
+          <div className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/[0.08] bg-[#0c0c10] shadow-2xl">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-4 bg-[#111116] border-b border-white/[0.05]">
+              <div className="flex gap-1.5 sm:gap-2">
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/10" />
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/10" />
+                <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-white/10" />
               </div>
 
-              {/* Unread indicator */}
-              <AnimatePresence>
-                {unreadMessages > 0 && !isAtBottom && (
-                  <NewMessageIndicator count={unreadMessages} onClick={scrollChatToBottom} />
-                )}
-              </AnimatePresence>
-
-              {/* Input */}
-              <div className="p-2.5 md:p-3 border-t border-gray-100 bg-white">
-                <div className="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-2 md:px-4 md:py-2.5">
-                  <input 
-                    type="text" 
-                    placeholder="Ask about invoices, GST..."
-                    className="flex-1 bg-transparent text-xs md:text-sm outline-none text-gray-700 placeholder-gray-400"
-                    disabled
-                  />
-                  <button className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-[#138808] flex items-center justify-center">
-                    <Send className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+              {/* App Tabs - Scrollable on mobile */}
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+                {scenarios.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActive(i)}
+                    className={`px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
+                      i === active ? "bg-white/[0.08] text-white" : "text-gray-500"
+                    }`}
+                  >
+                    {s.app}
                   </button>
+                ))}
+              </div>
+
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500" />
+                <span className="text-xs text-gray-500">Active</span>
+              </div>
+            </div>
+
+            {/* Content Area */}
+            <div className="relative h-[280px] sm:h-[350px] md:h-[450px] lg:h-[500px]">
+              <div className="absolute inset-0">{scenarios[active].window}</div>
+
+              {/* AI Assistant Popup */}
+              <div className="absolute bottom-3 sm:bottom-6 md:bottom-8 right-3 sm:right-6 md:right-8 left-3 sm:left-auto">
+                <div className="w-full sm:w-72 md:w-80 p-3 sm:p-4 md:p-5 rounded-xl sm:rounded-2xl bg-[#16161c]/95 backdrop-blur-xl border border-white/[0.08] shadow-2xl">
+                  <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                      <span className="text-white font-bold text-xs sm:text-sm">भा</span>
+                    </div>
+                    <div>
+                      <div className="text-white font-medium text-xs sm:text-sm">Bharat MCP</div>
+                      <div className="text-green-400/80 text-[10px] sm:text-xs flex items-center gap-1">
+                        <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-green-400" />
+                        Watching
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-300 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">{scenarios[active].aiText}</p>
+                  <div className="flex gap-2">
+                    <button className="flex-1 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg sm:rounded-xl text-white text-xs sm:text-sm font-medium">
+                      Yes, help me
+                    </button>
+                    <button className="py-2 sm:py-2.5 px-3 sm:px-4 bg-white/[0.03] border border-white/[0.08] rounded-lg sm:rounded-xl text-gray-400 text-xs sm:text-sm">
+                      Later
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </motion.div>
+
+            {/* Dock */}
+            <div className="flex items-center justify-center gap-1.5 sm:gap-2 py-3 sm:py-4 bg-[#0a0a0e] border-t border-white/[0.05]">
+              {[FolderIcon, GlobeIcon, MailIcon, CodeIcon].map((Icon, i) => (
+                <div key={i} className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-white/[0.03] flex items-center justify-center">
+                  <Icon />
+                </div>
+              ))}
+              <div className="w-px h-6 sm:h-8 bg-white/[0.08] mx-1 sm:mx-2" />
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <span className="text-white font-bold text-xs sm:text-sm">भा</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 };
 
-export default Hero;
+const FolderIcon = () => (
+  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+  </svg>
+);
+
+const GlobeIcon = () => (
+  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+  </svg>
+);
+
+const MailIcon = () => (
+  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+  </svg>
+);
+
+const CodeIcon = () => (
+  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+  </svg>
+);
+
+const GmailWindow = () => (
+  <div className="h-full bg-[#0f0f14] flex">
+    <div className="w-40 md:w-56 bg-[#111118] p-3 md:p-5 border-r border-white/[0.05] hidden sm:block">
+      <div className="px-3 py-2 bg-blue-500/10 text-blue-400 rounded-lg text-xs md:text-sm font-medium mb-4">Compose</div>
+      <div className="space-y-1 text-xs md:text-sm">
+        <div className="px-3 py-2 bg-white/[0.05] text-white rounded-lg">Inbox <span className="float-right text-gray-500">66</span></div>
+        <div className="px-3 py-2 text-gray-500">Starred</div>
+      </div>
+    </div>
+    <div className="flex-1 p-4 sm:p-6 md:p-8">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">A</div>
+        <div>
+          <div className="text-white font-medium text-sm">ABC Corp Finance</div>
+          <div className="text-gray-500 text-xs">Invoice for March Services</div>
+        </div>
+      </div>
+      <div className="space-y-2 text-gray-400 text-xs sm:text-sm">
+        <p>Dear Team,</p>
+        <p>Please find attached the invoice.</p>
+        <p className="text-white font-medium">Amount: ₹45,000 + GST</p>
+      </div>
+      <div className="mt-4 inline-flex items-center gap-3 px-3 py-2 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+        <div className="w-8 h-10 bg-red-500/10 rounded flex items-center justify-center text-red-400 text-[10px] font-bold">PDF</div>
+        <div>
+          <div className="text-white text-xs font-medium">Invoice_March.pdf</div>
+          <div className="text-gray-500 text-[10px]">245 KB</div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const VSCodeWindow = () => (
+  <div className="h-full bg-[#1e1e1e] flex">
+    <div className="w-40 bg-[#252526] p-3 border-r border-white/[0.05] hidden md:block">
+      <div className="text-gray-500 text-[10px] mb-3 uppercase tracking-wider">Explorer</div>
+      <div className="space-y-0.5 text-xs">
+        <div className="px-2 py-1.5 text-gray-400">src</div>
+        <div className="px-2 py-1.5 bg-[#37373d] text-white rounded ml-2">main.py</div>
+      </div>
+    </div>
+    <div className="flex-1 p-4 sm:p-6 font-mono">
+      <div className="text-gray-500 text-[10px] sm:text-xs mb-3">main.py</div>
+      <pre className="text-gray-400 text-[10px] sm:text-xs md:text-sm leading-5 sm:leading-6">
+{`21  def get_user(data):
+22      user = data.get('user')`}
+      </pre>
+      <pre className="text-red-400 bg-red-500/10 px-2 py-1 rounded text-[10px] sm:text-xs md:text-sm leading-5 sm:leading-6 inline-block">
+{`23      return user.name  # Error`}
+      </pre>
+      <div className="mt-4 sm:mt-6 px-3 py-2 bg-red-500/10 border-l-2 border-red-500 rounded-r text-red-400 text-[10px] sm:text-xs">
+        TypeError: Cannot read 'name' of undefined
+      </div>
+    </div>
+  </div>
+);
+
+const N8nWindow = () => (
+  <div className="h-full bg-[#1a1a1f] p-4 sm:p-6 md:p-8">
+    <div className="flex items-center gap-3 mb-6 sm:mb-10">
+      <span className="text-white font-medium text-sm">My Workflow</span>
+      <button className="px-2 py-1 bg-green-500 text-white text-xs rounded font-medium">Execute</button>
+    </div>
+    <div className="flex items-center justify-center gap-3 sm:gap-6 py-6 sm:py-12">
+      {[{ color: "bg-purple-500", name: "Webhook" }, { color: "bg-green-500", name: "Sheets", error: true }, { color: "bg-blue-500", name: "Email" }].map((node, i) => (
+        <div key={i} className="flex items-center gap-3 sm:gap-6">
+          <div className="flex flex-col items-center gap-1.5">
+            <div className={`relative w-10 h-10 sm:w-14 sm:h-14 ${node.color} rounded-lg sm:rounded-xl flex items-center justify-center`}>
+              <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              {node.error && <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">!</div>}
+            </div>
+            <span className="text-gray-500 text-[10px] sm:text-xs">{node.name}</span>
+          </div>
+          {i < 2 && <div className="w-6 sm:w-12 h-0.5 bg-gray-700 rounded-full" />}
+        </div>
+      ))}
+    </div>
+    <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-yellow-400 text-[10px] sm:text-xs">
+      Google Sheets node needs credentials.
+    </div>
+  </div>
+);
+
+const TerminalWindow = () => (
+  <div className="h-full bg-[#0d1117] p-4 sm:p-6 md:p-8 font-mono">
+    <div className="text-gray-600 text-[10px] sm:text-xs mb-4">~ Terminal</div>
+    <div className="space-y-3">
+      <div className="text-gray-300 text-[10px] sm:text-xs md:text-sm">
+        <span className="text-green-400">➜</span> "What was my MongoDB connection string?"
+      </div>
+      <div className="text-gray-600 text-[10px] sm:text-xs">Searching...</div>
+      <div className="mt-4 p-3 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+        <div className="text-gray-500 text-[10px] mb-1">Found from Nov 15, 2024:</div>
+        <div className="text-green-400 text-[10px] sm:text-xs break-all">mongodb+srv://user:****@cluster0.mongodb.net/mydb</div>
+      </div>
+    </div>
+  </div>
+);
