@@ -49,10 +49,10 @@ const HeroImage = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.7 }}
-        className="relative py-16 lg:py-24"
+        className="relative py-12 lg:py-20"
       >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Video Container */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Video Container - Bigger */}
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
             {/* Browser Header */}
             <div className="flex items-center gap-2 px-4 py-3 bg-[#F5E5DA]">
@@ -63,24 +63,13 @@ const HeroImage = () => {
               </div>
             </div>
 
-            {/* Video Area */}
-            <div className="aspect-video bg-gray-900 relative">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-white/50 text-lg">Your video here</div>
-              </div>
-
-              {/* Uncomment for your video */}
-              {/*
-              <video 
+            {/* GIF Area - Bigger */}
+            <div className="relative" style={{ aspectRatio: '16/9' }}>
+              <img 
+                src="/home.gif" 
+                alt="bharatmcp Demo" 
                 className="w-full h-full object-cover"
-                autoPlay 
-                muted 
-                loop 
-                playsInline
-              >
-                <source src="/your-video.mp4" type="video/mp4" />
-              </video>
-              */}
+              />
             </div>
           </div>
         </div>
