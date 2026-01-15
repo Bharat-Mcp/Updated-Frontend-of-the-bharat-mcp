@@ -1,430 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ===== ROOT VARIABLES ===== */
-:root {
-  /* Bharat Theme Colors */
-  --saffron: #FF9933;
-  --saffron-light: #FFB366;
-  --saffron-dark: #E67300;
-  --india-green: #138808;
-  --chakra-blue: #000080;
-  
-  /* Dark Theme */
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #12121a;
-  --bg-tertiary: #1a1a24;
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-card-hover: rgba(255, 255, 255, 0.06);
-  
-  /* Text */
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  
-  /* Borders */
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-medium: rgba(255, 255, 255, 0.1);
-  
-  /* Gradients */
-  --gradient-saffron: linear-gradient(135deg, #FF9933 0%, #FFB366 50%, #FF9933 100%);
-  --gradient-glow: radial-gradient(circle, rgba(255, 153, 51, 0.15) 0%, transparent 70%);
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+    --primary: 24 94% 50%;
+    --primary-foreground: 60 9.1% 97.8%;
+    --secondary: 60 4.8% 95.9%;
+    --secondary-foreground: 24 9.8% 10%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
+    --accent: 24 94% 95%;
+    --accent-foreground: 24 9.8% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 60 9.1% 97.8%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 24 94% 50%;
+    --radius: 0.75rem;
+  }
 }
 
-/* ===== BASE STYLES ===== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-/* ===== TYPOGRAPHY ===== */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-/* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--saffron), var(--saffron-dark));
+  background: #FDBA74;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--saffron-light);
-}
-
-/* ===== SELECTION ===== */
-::selection {
-  background: rgba(255, 153, 51, 0.3);
-  color: white;
-}
-
-/* ===== CUSTOM UTILITIES ===== */
-@layer utilities {
-  /* Text Gradient */
-  .text-gradient {
-    @apply bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 bg-clip-text text-transparent;
-  }
-  
-  .text-gradient-green {
-    @apply bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent;
-  }
-
-  /* Glassmorphism */
-  .glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  .glass-strong {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  /* Glow Effects */
-  .glow-saffron {
-    box-shadow: 0 0 40px rgba(255, 153, 51, 0.3),
-                0 0 80px rgba(255, 153, 51, 0.1);
-  }
-
-  .glow-saffron-sm {
-    box-shadow: 0 0 20px rgba(255, 153, 51, 0.2);
-  }
-
-  .text-glow {
-    text-shadow: 0 0 40px rgba(255, 153, 51, 0.5);
-  }
-
-  /* Border Gradient */
-  .border-gradient {
-    position: relative;
-    background: var(--bg-card);
-    border-radius: 16px;
-  }
-
-  .border-gradient::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    padding: 1px;
-    background: linear-gradient(135deg, rgba(255, 153, 51, 0.5), transparent, rgba(255, 153, 51, 0.2));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-  }
-
-  /* Shimmer Effect */
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .shimmer::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-    animation: shimmer 2s infinite;
-  }
-
-  /* Noise Texture */
-  .noise {
-    position: relative;
-  }
-
-  .noise::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    opacity: 0.03;
-    pointer-events: none;
-  }
-}
-
-/* ===== ANIMATIONS ===== */
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { 
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes blob {
-  0%, 100% {
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-  }
-  50% {
-    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
-  }
-}
-
-/* Animation Classes */
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 20s linear infinite;
-}
-
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.5s ease-out forwards;
-}
-
-.animate-blob {
-  animation: blob 8s ease-in-out infinite;
-}
-
-/* Staggered Delays */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-
-/* ===== BUTTON STYLES ===== */
-.btn-primary {
-  @apply relative px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl overflow-hidden transition-all duration-300;
-}
-
-.btn-primary:hover {
-  @apply shadow-lg shadow-orange-500/30 -translate-y-0.5;
-}
-
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.5s;
-}
-
-.btn-primary:hover::before {
-  transform: translateX(100%);
-}
-
-.btn-secondary {
-  @apply px-6 py-3 bg-white/5 border border-white/10 text-white font-medium rounded-xl transition-all duration-300;
-}
-
-.btn-secondary:hover {
-  @apply bg-white/10 border-white/20;
-}
-
-/* ===== CARD STYLES ===== */
-.card {
-  @apply relative p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] backdrop-blur-sm transition-all duration-500;
-}
-
-.card:hover {
-  @apply bg-white/[0.04] border-white/[0.1] -translate-y-1;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
-              0 0 60px rgba(255, 153, 51, 0.05);
-}
-
-.card-glow {
-  @apply card;
-}
-
-.card-glow::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  background: linear-gradient(135deg, rgba(255, 153, 51, 0.2), transparent 50%, rgba(255, 153, 51, 0.1));
-  border-radius: inherit;
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.5s;
-}
-
-.card-glow:hover::before {
-  opacity: 1;
-}
-
-/* ===== SECTION STYLES ===== */
-.section {
-  @apply relative py-24 lg:py-32;
-}
-
-.section-title {
-  @apply text-4xl md:text-5xl lg:text-6xl font-bold mb-6;
-}
-
-.section-subtitle {
-  @apply text-lg md:text-xl text-gray-400 max-w-2xl;
-}
-
-/* ===== INPUT STYLES ===== */
-.input {
-  @apply w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all duration-300;
-}
-
-/* ===== BADGE STYLES ===== */
-.badge {
-  @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20;
-}
-
-.badge-green {
-  @apply bg-green-500/10 text-green-400 border-green-500/20;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .section {
-    @apply py-16;
-  }
-  
-  .section-title {
-    @apply text-3xl;
-  }
-}
-
-/* ===== SPECIAL EFFECTS ===== */
-/* Chakra spinner (Ashoka Chakra inspired) */
-.chakra-spinner {
-  position: relative;
-  width: 60px;
-  height: 60px;
-}
-
-.chakra-spinner::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 3px solid transparent;
-  border-top-color: var(--saffron);
-  border-radius: 50%;
-  animation: spin-slow 1.5s linear infinite;
-}
-
-.chakra-spinner::after {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border: 3px solid transparent;
-  border-top-color: var(--india-green);
-  border-radius: 50%;
-  animation: spin-slow 1s linear infinite reverse;
-}
-
-/* India Flag Gradient Line */
-.india-line {
-  height: 3px;
-  background: linear-gradient(90deg, 
-    var(--saffron) 0%, 
-    var(--saffron) 33%, 
-    white 33%, 
-    white 66%, 
-    var(--india-green) 66%, 
-    var(--india-green) 100%
-  );
-  border-radius: 2px;
-}
-
-/* ===== HIDE ON LOAD ===== */
-.hidden-initial {
-  opacity: 0;
+  background: #FB923C;
 }
