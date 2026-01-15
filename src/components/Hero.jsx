@@ -35,7 +35,7 @@ const Hero = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-5xl sm:text-6xl lg:text-7xl font-serif font-bold text-gray-900 leading-[1.1] mb-6"
           >
-            Don't make your AI agents
+            Don’t make your prospects
             <br />
             wait–ever again
           </motion.h1>
@@ -47,10 +47,12 @@ const Hero = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg text-gray-600 max-w-xl mx-auto mb-8"
           >
-            The first MCP registry platform where AI agents
+            The first agentic product demo platform where
             <br />
-            connect to tools and APIs, instantly.
-          </motion.p>
+            prospects receive personalized demos, in a video    
+            <br />
+            call, instantly      
+            </motion.p>
 
           {/* CTA Button */}
           <motion.div
