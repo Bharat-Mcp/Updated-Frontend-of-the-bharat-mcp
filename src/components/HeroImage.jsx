@@ -51,7 +51,7 @@ const HeroImage = () => {
         transition={{ duration: 0.7 }}
         className="relative py-12 lg:py-20"
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Video Container - Bigger */}
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
             {/* Browser Header */}
@@ -63,12 +63,17 @@ const HeroImage = () => {
               </div>
             </div>
 
-            {/* GIF Area - Bigger */}
-            <div className="relative" style={{ aspectRatio: '16/9' }}>
+            {/* GIF Area - Cropped to hide bottom watermark */}
+            <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
               <img 
                 src="/home.gif" 
                 alt="bharatmcp Demo" 
-                className="w-full h-full object-cover"
+                className="w-full absolute top-0 left-0"
+                style={{
+                  height: '110%',
+                  objectFit: 'cover',
+                  objectPosition: 'top center'
+                }}
               />
             </div>
           </div>
