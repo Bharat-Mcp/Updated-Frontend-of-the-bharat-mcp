@@ -5,7 +5,6 @@ const TrustedBy = () => {
   const companies = [
     'Palvo',
     'Startopia',
-    'SixtyFour AI',
     'NeuralBox',
     'CloudMind',
     'DataStack',
