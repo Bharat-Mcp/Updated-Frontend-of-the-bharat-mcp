@@ -8,7 +8,6 @@ import AgentSection from '../components/AgentSection';
 import OnDemand from '../components/OnDemand';
 import HyperPersonalization from '../components/HyperPersonalization';
 import Multilingual from '../components/Multilingual';
-import CRMSync from '../components/CRMSync';
 import CTA from '../components/CTA';
 import Footer from '../components/Footer';
 
@@ -24,7 +23,6 @@ const HomePage = () => {
       <OnDemand />
       <HyperPersonalization />
       <Multilingual />
-      <CRMSync />
       <CTA />
       <Footer />
     </>
